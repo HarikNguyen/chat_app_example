@@ -9,12 +9,12 @@ certifi = "==2022.6.15"
 distlib = "==0.3.5"
 django = "==4.0.6"
 filelock = "==3.7.1"
-mysqlclient = "==2.1.1"
 pipenv = "==2022.7.24"
 platformdirs = "==2.5.2"
 sqlparse = "==0.4.2"
 virtualenv = "==20.16.1"
 virtualenv-clone = "==0.5.7"
+pillow = "*"
 
 [dev-packages]
 

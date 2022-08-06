@@ -1,8 +1,8 @@
 import uuid
-from datetime import timezone
 
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin, GroupManager, Permission
+from django.contrib.auth.models import AbstractBaseUser, GroupManager, Permission, PermissionsMixin
+from django.utils import timezone
 
 from .managers import AccountManager
 
@@ -28,83 +28,9 @@ class AccountRole(models.Model):
     def natural_key(self):
         return (self.name,)
 
-class AccountPermission(models.Model):
-    """
-    Add the fields and methods necessary to support the Role and Permission
-    models using the ModelBackend.
-    """
-    roles = models.ManyToManyField(
-        AccountRole,
-        verbose_name='account role',
-        blank=True,
-        related_name="accountuser_set",
-        related_query_name="accountuser",
-    )
-    account_permissions = models.ManyToManyField(
-        Permission,
-        verbose_name='account permission',
-        blank=True,
-        related_name="accountuser_set",
-        related_query_name="accountuser",
-    )
-    
-    class Meta:
-        abstract = True
-
-    def get_account_permissions(self, obj=None):
-        """
-        Return a list of permission strings that this account has directly.
-        Query all available auth backends. If an object is passed in,
-        return only permissions matching this object.
-        """
-        return _user_get_permissions(self, obj, "user")
-
-    def get_group_permissions(self, obj=None):
-        """
-        Return a list of permission strings that this user has through their
-        groups. Query all available auth backends. If an object is passed in,
-        return only permissions matching this object.
-        """
-        return _user_get_permissions(self, obj, "group")
-
-    def get_all_permissions(self, obj=None):
-        return _user_get_permissions(self, obj, "all")
-
-    def has_perm(self, perm, obj=None):
-        """
-        Return True if the user has the specified permission. Query all
-        available auth backends, but return immediately if any backend returns
-        True. Thus, a user who has permission from a single auth backend is
-        assumed to have permission in general. If an object is provided, check
-        permissions for that object.
-        """
-        # Active superusers have all permissions.
-        if self.is_active and self.is_superuser:
-            return True
-
-        # Otherwise we need to check the backends.
-        return _user_has_perm(self, perm, obj)
-
-    def has_perms(self, perm_list, obj=None):
-        """
-        Return True if the user has each of the specified permissions. If
-        object is passed, check if the user has all required perms for it.
-        """
-        return all(self.has_perm(perm, obj) for perm in perm_list)
-
-    def has_module_perms(self, app_label):
-        """
-        Return True if the user has any permissions in the given app label.
-        Use similar logic as has_perm(), above.
-        """
-        # Active superusers have all permissions.
-        if self.is_active and self.is_superuser:
-            return True
-
-        return _user_has_module_perms(self, app_label)
-
-class AccountUser(AbstractBaseUser, AccountPermission):
+class AccountUser(AbstractBaseUser, PermissionsMixin):
     uuid = models.UUIDField('Public identifier', unique=True, editable=False, default=uuid.uuid4)
+    employee_number = models.CharField(max_length=20, unique=True)
     first_name = models.TextField(max_length=100, blank=True)
     last_name = models.TextField(max_length=100, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
@@ -125,7 +51,7 @@ class AccountUser(AbstractBaseUser, AccountPermission):
     managers = AccountManager()
 
     EMAIL_FIELD = "email"
-    USERNAME_FIELD = "username"
+    USERNAME_FIELD = "employee_number"
     REQUIRED_FIELDS = ["email"]
     
     class Meta:
