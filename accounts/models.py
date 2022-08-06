@@ -4,9 +4,9 @@ from datetime import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, GroupManager
 
-from .managers import AccountManager
+from .managers import EmployeeManager
 
-class AccountRole(models.Model):
+class EmployeeRole(models.Model):
     """
     AccountRole like Group model. However, instead of Group we have roles which user have
     """
@@ -29,7 +29,7 @@ class AccountRole(models.Model):
         return (self.name,)
 
 
-class AccountUser(AbstractBaseUser, PermissionsMixin):
+class Employee(AbstractBaseUser, PermissionsMixin):
     uuid = models.UUIDField('Public identifier', unique=True, editable=False, default=uuid.uuid4)
     employee_number = models.CharField(max_length=30,unique=True)
     first_name = models.TextField(max_length=100, blank=True)
@@ -49,7 +49,7 @@ class AccountUser(AbstractBaseUser, PermissionsMixin):
     created_by = models.EmailField()
     modified_by = models.EmailField()
 
-    managers = AccountManager()
+    managers = EmployeeManager()
 
     EMAIL_FIELD = "email"
     USERNAME_FIELD = "username"

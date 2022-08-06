@@ -14,7 +14,7 @@ from django.apps import apps
 from django.contrib.auth.models import BaseUserManager
 from django.contrib import auth
 
-class AccountManager(BaseUserManager):
+class EmployeeManager(BaseUserManager):
     use_in_migrations = True
 
     def create_user(self, username, email, password, **extra_fields):
