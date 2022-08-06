@@ -52,7 +52,7 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     managers = EmployeeManager()
 
     EMAIL_FIELD = "email"
-    USERNAME_FIELD = "username"
+    USERNAME_FIELD = "employee_number"
     REQUIRED_FIELDS = ["email"]
     
     class Meta:
