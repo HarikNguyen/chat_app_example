@@ -1,10 +1,10 @@
 import uuid
-from datetime import timezone
 
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, GroupManager
-
+from django.contrib.auth.models import AbstractBaseUser, Permission, PermissionsMixin, GroupManager
+from django.utils import timezone
 from .managers import EmployeeManager
+
 
 class EmployeeRole(models.Model):
     """
@@ -12,7 +12,7 @@ class EmployeeRole(models.Model):
     """
     role_name = models.CharField("role name", max_length=150, unique=True)
     permissions = models.ManyToManyField(
-        PermissionsMixin,
+        Permission,
         verbose_name="permissions",
         blank=True,
     )
@@ -21,6 +21,8 @@ class EmployeeRole(models.Model):
     class Meta:
         verbose_name = "role"
         verbose_name_plural = "roles"
+        managed = True
+        db_table = 'roles'
 
     def __str__(self):
         return self.name
@@ -28,9 +30,21 @@ class EmployeeRole(models.Model):
     def natural_key(self):
         return (self.name,)
 
+class EmployeePermission(PermissionsMixin):
+    roles = models.ManyToManyField(
+        EmployeeRole,
+        blank=True,
+        related_name="user_set",
+        related_query_name="user",
+    )
+    
+    class Meta:
+        abstract = True
+        managed = True
+        db_table = 'employees_permissions'
 
-class Employee(AbstractBaseUser, PermissionsMixin):
-    uuid = models.UUIDField('Public identifier', unique=True, editable=False, default=uuid.uuid4)
+class Employee(AbstractBaseUser, EmployeePermission):
+    uuid = models.UUIDField('Public identifier', unique=True, primary_key=True, editable=False, default=uuid.uuid4)
     employee_number = models.CharField(max_length=30,unique=True)
     first_name = models.TextField(max_length=100, blank=True)
     last_name = models.TextField(max_length=100, blank=True)
@@ -58,6 +72,8 @@ class Employee(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = 'account'
         verbose_name_plural = 'accounts'
+        managed = True
+        db_table = 'employees'
 
     def __str__(self) -> str:
         return self.uuid
